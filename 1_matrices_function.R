@@ -1,6 +1,6 @@
 ########## função para automatizar cálculos de matrizes de interações #######
 
-LIEB.NETWORK <- function(diretorio, ext, aleats = 999) #(diretorio de arquivos, ext(extencao usada. ex= txt ou csv))
+LIEB.NETWORK <- function(diretorio, ext, aleats = 999)#(diretorio de arquivos, ext(extencao usada. ex= txt ou csv))
 {
   setwd(diretorio)
   dados <- list.files(diretorio)
