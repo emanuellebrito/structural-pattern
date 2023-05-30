@@ -1,3 +1,19 @@
+# Function: LIEB.NETWORK
+# Creator: Emanuelle Brito
+# Description: Calculate network metrics from bipartite data files
+#
+# Arguments:
+#   - diretorio: Directory path where the data files are located.
+#   - ext: File extension of the data files.
+#   - aleats (optional): Number of randomizations for null model calculations. Default is 999.
+#
+# Returns:
+#   - ResuMat: Matrix containing the calculated network metrics for each data file.
+#
+# Required Packages:
+#   - bipartite: This function requires the 'bipartite' package for network calculations.
+
+
 LIEB.NETWORK <- function(diretorio, ext, aleats = 999) {
   library(bipartite)  # Load bipartite package
   setwd(diretorio)
@@ -10,6 +26,7 @@ LIEB.NETWORK <- function(diretorio, ext, aleats = 999) {
   }
   
   size <- numeric(n)
+  
   for (i in 1:n) {
     num.net <- ncol(matriz[[i]]) + nrow(matriz[[i]])
     size[i] <- num.net
@@ -38,7 +55,7 @@ LIEB.NETWORK <- function(diretorio, ext, aleats = 999) {
   ResuMat[, 1] <- size
   ResuMat[, 2] <- C
   ResuMat[, 3] <- AS
-  ResuMat[, 4] <- NODF  
+  ResuMat[, 4] <- NODF
   
   return(ResuMat)
 }
