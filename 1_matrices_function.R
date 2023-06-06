@@ -155,6 +155,33 @@ LIEB.NETWORK <- function(diretorio, ext) {
 }
 
 
-
+#function to calculate the connections number in each matrix
+LIEB.NETWORK <- function(diretorio, ext) {
+  library(bipartite)  # Load bipartite package
+  setwd(diretorio)
+  dados <- list.files(diretorio, pattern = ext, full.names = TRUE)
+  n <- length(dados)
+  data <- vector("list", n)
+  
+  Connections <- numeric(n)
+  
+  for (i in 1:n) {
+    data[[i]] <- read.csv(dados[i], header = TRUE, sep = ";", dec = ",")
+    
+    # Convert weighted matrix to binary matrix
+    data[[i]] <- data[[i]][, -1]  # Remove the first column
+    data[[i]] <- ifelse(data[[i]] > 0, 1, 0)
+    
+    # Calculate network properties
+    Connections[i] <- sum(data[[i]])
+  }
+  
+  ResuMat <- matrix(nrow = n, ncol = 1)  
+  rownames(ResuMat) <- basename(dados)
+  colnames(ResuMat) <- "Connections"
+  ResuMat[, 1] <- Connections
+  
+  return(ResuMat)
+}
 
 subset1 <- LIEB.NETWORK(diretorio = "C:/Users/emanu/Dropbox (Personal)/Doutorado - Emanuelle/Cap 1 - Scientometric/data/pollination_webs" , ext = ".csv")

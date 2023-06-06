@@ -15,13 +15,4 @@ networklevel(matriz_bi)
 
 index <- networklevel(matriz_bi)
 index <- as.data.frame(index)
-i
-
-
-compartments <- numeric(n)
-
-for (i in 1:n) {
-  comp <- networklevel(matriz[[i]], index = "number of compartments")
-  compartments[i] <- comp
-}
 
