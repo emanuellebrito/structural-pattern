@@ -23,8 +23,8 @@ data <- read.csv("results_networks.csv", header = TRUE, sep = ";", dec = ",")
 summary(data)
 head(data)
 
-#exploring the data
-#number of level in each variable
+# Exploring the data
+# Number of levels in each variable
 count_df <- data %>%
   summarise_all(~list(length(unique(.)))) %>%
   pivot_longer(everything(), names_to = "Variable", values_to = "Count")
@@ -91,7 +91,6 @@ data <- data %>% filter(Web_Code != "robertson_1929")
 data <- data %>% filter(Biome_WWF != "Flooded grasslands and savannas")
 
 ################################################################
-
 #First need to relevel the reference group according to > networks number
 data$Realm_WWF <- as.factor(data$Realm_WWF)
 data$Realm_WWF = relevel(data$Realm_WWF, ref=5)

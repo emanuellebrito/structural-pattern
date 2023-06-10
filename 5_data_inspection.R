@@ -31,7 +31,11 @@ data_group <- data_mean %>%
   mutate(range = cut(Size, breaks = c(0, 25, 50, 100, Inf),
                      labels = c("0-25", "26-50", "51-100", ">100"), include.lowest = TRUE))
 
-# Count the frequencies in each range for "Size" and the count of different taxonomic levels
+# Plotting groups size by metric
+ggplot(data_group, aes(x=range, y=Connectance)) +
+  geom_boxplot()
+
+# Count the frequencies in each range for "Size" and the metrics means
 # Here I classified networks into mini, small, medium and large
 count_data_combined <- data_group %>%
   group_by(range) %>%
