@@ -17,8 +17,10 @@ library(jtools)
 library(fitdistrplus)
 library(modelsummary)
 
+# Set directory
+setwd("C:/Users/emanu/Dropbox (Personal)/Doutorado - Emanuelle/Cap 3 - Structural pattern/results")
 
-#Read data
+# Read data
 data <- read.csv("results_networks.csv", header = TRUE, sep = ";", dec = ",")
 summary(data)
 head(data)
@@ -102,8 +104,17 @@ data$Continent = relevel(data$Continent, ref=4)
 ###################### Connectance
 #Model to test the Connectance that has non-normal distribution
 fitdistr(data$Connectance, "lognormal")
+hist(log(data$Connectance))
+#
+sqrt(data$LAT)
+data$LAT <- as.numeric(data$LAT)
+data$LONG <- as.numeric(data$LONG) #verificar
+summary(data)
+sqrt(data$LAT*data$LAT)
+
+
 model1 <- lmer(log(Connectance)~ 1 + (1 | Size) + (1 | Asymmetry), data = data)
-model2 <- lmer(log(Connectance)~ Hemisphere + Continent + Region + Realm_WWF + Biome_WWF + (1 | Size) + (1 | Asymmetry), data = data)
+model2 <- lm(log(Connectance)~ Realm_WWF + sqrt(LAT*LAT) + Biome_WWF + log(Size), data = data)
 
 plot(model2)
 summary(model2)
@@ -145,8 +156,8 @@ fitdistr(data$M_Beckett, "normal")
 # Fit linear mixed-effects model with NA values dropped for "Animal_taxonomic_level"
 model1 <- lmer(M_Beckett ~ 1 + (1 | Size) + (1 | Asymmetry),
                data = na.omit(data[, c("M_Beckett", "Animal_taxonomic_level", "Size", "Asymmetry")]))
-model2 <- lmer(M_Beckett ~ Animal_taxonomic_level + (1 | Size) + (1 | Asymmetry),
-               data = na.omit(data[, c("M_Beckett", "Animal_taxonomic_level", "Size", "Asymmetry")]))
+model2 <- lm(Connectance ~ Animal_taxonomic_level + Plant_taxonomic_level + log(Size),
+               data = na.omit(data[, c("Connectance", "Animal_taxonomic_level", "Plant_taxonomic_level", "Size")]))
 
 
 sjPlot::plot_model(model2, show.values=TRUE, show.p=TRUE)
