@@ -105,29 +105,45 @@ data$Continent = relevel(data$Continent, ref=4)
 #Model to test the Connectance that has non-normal distribution
 fitdistr(data$Connectance, "lognormal")
 hist(log(data$Connectance))
-#
-sqrt(data$LAT)
+
+# Transforming LAT and LONG on numeric variables
 data$LAT <- as.numeric(data$LAT)
-data$LONG <- as.numeric(data$LONG) #verificar
+data$LONG <- as.numeric(data$LONG)
 summary(data)
 sqrt(data$LAT*data$LAT)
 
+# Transforming Latitude on positive values
+data <- data %>%
+  mutate(LAT_pos = sqrt(LAT*LAT))
 
-model1 <- lmer(log(Connectance)~ 1 + (1 | Size) + (1 | Asymmetry), data = data)
-model2 <- lm(log(Connectance)~ Realm_WWF + sqrt(LAT*LAT) + Biome_WWF + log(Size), data = data)
+data$LAT_pos
+summary(data)
+
+ggplot(data, aes(x="", y=LAT_pos)) + 
+  geom_boxplot()
+
+# Model to test
+model1 <- lm(log(Connectance)~ 1, data = data)
+model2 <- lm(log(Connectance)~ Realm_WWF + Biome_WWF + log(Size) + log(LAT_pos), data = data)
 
 plot(model2)
 summary(model2)
 anova(model1, model2)
+
+modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
+  aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
+  scale_color_manual(values = c("grey", "black"))
 
 summ(model2)
 sjPlot::plot_model(model2, show.values=TRUE, show.p=TRUE)
 sjPlot::tab_model(model2)
 
 ##################### NODF
+scale(data$Size)
+log(data$Size)
 fitdistr(data$NODF, "normal")
-model1 <- lmer(NODF ~ 1 + (1 | Size) + (1 | Asymmetry), data = data)
-model2 <- lmer(NODF ~ Hemisphere + Continent + Region + Realm_WWF + Biome_WWF + (1 | Size) + (1 | Asymmetry), data = data)
+model1 <- lm(NODF ~ 1, data = data)
+model2 <- lm(NODF ~ Realm_WWF + Biome_WWF + log(Size) + log(LAT_pos), data = data)
 
 plot(model2)
 summary(model2)
@@ -137,10 +153,14 @@ summ(model2)
 sjPlot::plot_model(model2, show.values=TRUE, show.p=TRUE)
 sjPlot::tab_model(model2)
 
+modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
+  aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
+  scale_color_manual(values = c("grey", "black"))
+
 ##################### Modularity
 fitdistr(data$M_Beckett, "normal")
-model1 <- lmer(M_Beckett ~ 1 + (1 | Size) + (1 | Asymmetry), data = data)
-model2 <- lmer(M_Beckett ~ Hemisphere + Continent + Region + Realm_WWF + Biome_WWF + (1 | Size) + (1 | Asymmetry), data = data)
+model1 <- lm(M_Beckett ~ 1, data = data)
+model2 <- lm(M_Beckett ~ Realm_WWF + Biome_WWF + log(Size) + log(LAT_pos), data = data)
 
 plot(model2)
 summary(model2)
@@ -148,23 +168,67 @@ anova(model1,model2)
 
 sjPlot::plot_model(model2, show.values=TRUE, show.p=TRUE)
 
+modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
+  aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
+  scale_color_manual(values = c("grey", "black"))
+
 summary(model2)$coefficients[, "Estimate"]
 summary(model2)$coefficients[, "Std. Error"]
-##############
-#for taxonomic levels
-fitdistr(data$M_Beckett, "normal")
-# Fit linear mixed-effects model with NA values dropped for "Animal_taxonomic_level"
-model1 <- lmer(M_Beckett ~ 1 + (1 | Size) + (1 | Asymmetry),
-               data = na.omit(data[, c("M_Beckett", "Animal_taxonomic_level", "Size", "Asymmetry")]))
-model2 <- lm(Connectance ~ Animal_taxonomic_level + Plant_taxonomic_level + log(Size),
-               data = na.omit(data[, c("Connectance", "Animal_taxonomic_level", "Plant_taxonomic_level", "Size")]))
 
+##############
+# TAXONOMIC ANALYSIS
+#############
+# Ordering variables levels
+data <- data %>%
+  mutate(Plant_Numeric_level = ifelse(Plant_taxonomic_level == "NER", 2,
+                                      ifelse(Plant_taxonomic_level == "family", 1, Plant_taxonomic_level)))
+
+data <- data %>%
+  mutate(Animal_Numeric_level = ifelse(Animal_taxonomic_level == "NER", 1,
+                                      ifelse(Animal_taxonomic_level == "phylum", 2, 
+                                      ifelse(Animal_taxonomic_level == "class", 3,
+                                      ifelse(Animal_taxonomic_level == "order", 4,
+                                      ifelse(Animal_taxonomic_level == "superfamily", 5,
+                                      ifelse(Animal_taxonomic_level == "family", 6,
+                                      ifelse(Animal_taxonomic_level == "subfamily", 7,
+                                      ifelse(Animal_taxonomic_level == "tribe", 8,
+                                      ifelse(Animal_taxonomic_level == "genus", 9,
+                                      Animal_taxonomic_level))))))))))
+
+
+# Fit linear model with NA values dropped for some variables
+# Connectance
+model1 <- lm(Connectance ~ 1, data = na.omit(data[, c("Connectance", "Plant_Numeric_level", 
+                                                      "Animal_Numeric_level", "Size", "LAT_pos")]))
+model2 <- lm(Connectance ~ Plant_Numeric_level + Animal_Numeric_level + log(Size) + log(LAT_pos),
+               data = na.omit(data[, c("Connectance", "Plant_Numeric_level", 
+                                       "Animal_Numeric_level", "Size", "LAT_pos")]))
+
+summary(model2)
 
 sjPlot::plot_model(model2, show.values=TRUE, show.p=TRUE)
-
-######################################
-modelplot(model2)
 
 modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
   aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
   scale_color_manual(values = c("grey", "black"))
+
+# NODF
+model2 <- lm(NODF ~ Plant_Numeric_level + Animal_Numeric_level + log(Size) + log(LAT_pos),
+             data = na.omit(data[, c("NODF", "Plant_Numeric_level", 
+                                     "Animal_Numeric_level", "Size", "LAT_pos")]))
+
+modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
+  aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
+  scale_color_manual(values = c("grey", "black"))
+
+# Modularity 
+model2 <- lm(M_Beckett ~ Plant_Numeric_level + Animal_Numeric_level + log(Size) + log(LAT_pos),
+             data = na.omit(data[, c("M_Beckett", "Plant_Numeric_level", 
+                                     "Animal_Numeric_level", "Size", "LAT_pos")]))
+
+modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
+  aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
+  scale_color_manual(values = c("grey", "black"))
+
+######################################
+
