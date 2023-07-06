@@ -18,7 +18,7 @@ library(fitdistrplus)
 library(modelsummary)
 
 # Set directory
-setwd("C:/Users/emanu/Dropbox (Personal)/Doutorado - Emanuelle/Cap 3 - Structural pattern/results")
+setwd("D:/Dropbox (Personal)/Doutorado - Emanuelle/Cap 3 - Structural pattern/results")
 
 # Read data
 data <- read.csv("results_networks.csv", header = TRUE, sep = ";", dec = ",")
@@ -132,7 +132,8 @@ anova(model1, model2)
 
 modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
   aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
-  scale_color_manual(values = c("grey", "black"))
+  scale_color_manual(values = c("grey", "black"))+
+  ggtitle("Connectance")
 
 summ(model2)
 sjPlot::plot_model(model2, show.values=TRUE, show.p=TRUE)
@@ -150,12 +151,13 @@ summary(model2)
 anova(model1,model2)
 
 summ(model2)
-sjPlot::plot_model(model2, show.values=TRUE, show.p=TRUE)
+sjPlot::plot_model(model3, show.values=TRUE, show.p=TRUE)
 sjPlot::tab_model(model2)
 
 modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
   aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
-  scale_color_manual(values = c("grey", "black"))
+  scale_color_manual(values = c("grey", "black")) +
+  ggtitle("NODF")
 
 ##################### Modularity
 fitdistr(data$M_Beckett, "normal")
@@ -170,7 +172,8 @@ sjPlot::plot_model(model2, show.values=TRUE, show.p=TRUE)
 
 modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
   aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
-  scale_color_manual(values = c("grey", "black"))
+  scale_color_manual(values = c("grey", "black")) +
+  ggtitle("Modularity")
 
 summary(model2)$coefficients[, "Estimate"]
 summary(model2)$coefficients[, "Std. Error"]
@@ -179,38 +182,46 @@ summary(model2)$coefficients[, "Std. Error"]
 # TAXONOMIC ANALYSIS
 #############
 # Ordering variables levels
+data <- na.omit(data)
 data <- data %>%
   mutate(Plant_Numeric_level = ifelse(Plant_taxonomic_level == "NER", 2,
                                       ifelse(Plant_taxonomic_level == "family", 1, Plant_taxonomic_level)))
 
 data <- data %>%
-  mutate(Animal_Numeric_level = ifelse(Animal_taxonomic_level == "NER", 1,
-                                      ifelse(Animal_taxonomic_level == "phylum", 2, 
-                                      ifelse(Animal_taxonomic_level == "class", 3,
+  mutate(Animal_Numeric_level = ifelse(Animal_taxonomic_level == "NER", 7,
+                                      ifelse(Animal_taxonomic_level == "phylum", 6, 
+                                      ifelse(Animal_taxonomic_level == "class", 5,
                                       ifelse(Animal_taxonomic_level == "order", 4,
-                                      ifelse(Animal_taxonomic_level == "superfamily", 5,
-                                      ifelse(Animal_taxonomic_level == "family", 6,
-                                      ifelse(Animal_taxonomic_level == "subfamily", 7,
-                                      ifelse(Animal_taxonomic_level == "tribe", 8,
-                                      ifelse(Animal_taxonomic_level == "genus", 9,
+                                      ifelse(Animal_taxonomic_level == "superfamily", 3,
+                                      ifelse(Animal_taxonomic_level == "family", 2,
+                                      ifelse(Animal_taxonomic_level == "subfamily", 1,
+                                      ifelse(Animal_taxonomic_level == "tribe", 1,
+                                      ifelse(Animal_taxonomic_level == "genus", 1,
                                       Animal_taxonomic_level))))))))))
-
 
 # Fit linear model with NA values dropped for some variables
 # Connectance
 model1 <- lm(Connectance ~ 1, data = na.omit(data[, c("Connectance", "Plant_Numeric_level", 
                                                       "Animal_Numeric_level", "Size", "LAT_pos")]))
-model2 <- lm(Connectance ~ Plant_Numeric_level + Animal_Numeric_level + log(Size) + log(LAT_pos),
+model2 <- lm(Connectance ~ Plant_Numeric_level + Animal_Numeric_level + log(Plants) + log(Animals) + log(LAT_pos),
                data = na.omit(data[, c("Connectance", "Plant_Numeric_level", 
-                                       "Animal_Numeric_level", "Size", "LAT_pos")]))
+                                       "Animal_Numeric_level", "Plants", "Animals", "LAT_pos")]))
+model3 <- lmer(Connectance ~ Plant_Numeric_level + Animal_Numeric_level + log(Plants) + log(Animals) + log(LAT_pos) + (1|Realm_WWF), data = data)
 
+summary(model3)
+
+summary(data)
+#package nlme
+data$Animal_Numeric_level <- as.numeric(data$Animal_Numeric_level)
+data$Plant_Numeric_level <- as.numeric(data$Plant_Numeric_level)
 summary(model2)
 
 sjPlot::plot_model(model2, show.values=TRUE, show.p=TRUE)
 
 modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
   aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
-  scale_color_manual(values = c("grey", "black"))
+  scale_color_manual(values = c("grey", "black")) +
+  ggtitle("Connectance")
 
 # NODF
 model2 <- lm(NODF ~ Plant_Numeric_level + Animal_Numeric_level + log(Size) + log(LAT_pos),
@@ -219,7 +230,8 @@ model2 <- lm(NODF ~ Plant_Numeric_level + Animal_Numeric_level + log(Size) + log
 
 modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
   aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
-  scale_color_manual(values = c("grey", "black"))
+  scale_color_manual(values = c("grey", "black")) +
+  ggtitle("NODF")
 
 # Modularity 
 model2 <- lm(M_Beckett ~ Plant_Numeric_level + Animal_Numeric_level + log(Size) + log(LAT_pos),
@@ -228,7 +240,10 @@ model2 <- lm(M_Beckett ~ Plant_Numeric_level + Animal_Numeric_level + log(Size) 
 
 modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
   aes(color = ifelse(p.value < 0.05, "Significant", "Not significant")) +
-  scale_color_manual(values = c("grey", "black"))
+  scale_color_manual(values = c("grey", "black")) +
+  ggtitle("Modularity")
 
 ######################################
+#save final data in R file
+save(data, file = "path_data.RData")
 
