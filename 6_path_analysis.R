@@ -111,7 +111,7 @@ lavaanPlot(model = fit3, node_options = list(shape = "box", fontname = "Arial"),
 model4 = '
 Animal_Numeric_level ~ LAT_pos
 Animals ~ Animal_Numeric_level + Plants + LAT_pos
-Connectance ~ Animals + Plants + Animal_Numeric_level
+Modularity ~ Animals + Animal_Numeric_level + Residual_Connectance
 '
 
 fit4 = cfa(model4, data = data_path)
@@ -127,6 +127,17 @@ lavaanPlot(model = fit4, node_options = list(shape = "box", fontname = "Arial"),
 
 
 #
+ggplot(data_path, aes(x=LAT_pos, y=Animals))+
+  geom_point()
+
+
+# plot a scatter plot
+plot(data_path$LAT_pos, data_path$Animals)
+
+# plot a regression line
+abline(lm(Animals ~ LAT_pos, data=data_path), col='red')
+
+#
 count_result <- data %>%
   count(Animal_taxonomic_level, Region)
 
@@ -139,3 +150,5 @@ count_result_2 <- data_path %>%
 
 ggplot(count_result_2, aes(x=Animal_Numeric_level, y=n, fill=Region)) +
   geom_bar(stat="identity", position=position_dodge())
+
+#####
