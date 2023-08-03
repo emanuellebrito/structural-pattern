@@ -188,7 +188,7 @@ data <- data %>%
                                       ifelse(Plant_taxonomic_level == "family", 1, Plant_taxonomic_level)))
 
 data <- data %>%
-  mutate(Animal_Numeric_level = ifelse(Animal_taxonomic_level == "NER", 7,
+  mutate(Animal_Numeric_level = ifelse(Animal_taxonomic_level == "NER", 6,
                                       ifelse(Animal_taxonomic_level == "phylum", 6, 
                                       ifelse(Animal_taxonomic_level == "class", 5,
                                       ifelse(Animal_taxonomic_level == "order", 4,
@@ -246,4 +246,6 @@ modelplot(model2, coef_rename = TRUE, coef_omit = 'Interc') +
 ######################################
 #save final data in R file
 save(data, file = "path_data.RData")
-
+save(data, file = "data_all.xls")
+write.csv(data, "D:/Dropbox (Personal)/Doutorado - Emanuelle/Cap 3 - Structural pattern/results/data_all.csv", row.names=FALSE)
+write.csv(data_path, "D:/Dropbox (Personal)/Doutorado - Emanuelle/Cap 3 - Structural pattern/results/data_all2.csv", row.names=FALSE)
